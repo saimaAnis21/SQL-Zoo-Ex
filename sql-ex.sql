@@ -80,6 +80,20 @@ SELECT teamname, COUNT(teamid) FROM eteam JOIN goal ON id=teamid GROUP BY teamna
 SELECT stadium, COUNT(goal.matchid) FROM game JOIN goal ON id=matchid GROUP BY stadium
 SELECT matchid,  mdate, COUNT(matchid) FROM game JOIN goal ON matchid = id WHERE (team1 = 'POL' OR team2 = 'POL') GROUP BY matchid, mdate
 SELECT matchid, mdate, COUNT(teamid) FROM goal JOIN game ON matchid=id WHERE teamid= 'GER' GROUP BY matchid, mdate
+13- 
+-- 7 More JOIN operations
+SELECT id, title FROM movie WHERE yr=1962
+SELECT yr FROM movie WHERE title =  'Citizen Kane'
+SELECT id,title,yr FROM movie WHERE title LIKE '%Star Trek%' ORDER BY yr
+SELECT id FROM actor WHERE name =  'Glenn Close'
+SELECT id FROM movie WHERE title =  'Casablanca'
+SELECT actor.name FROM actor JOIN casting ON id=actorid WHERE casting.movieid=11768
+SELECT actor.name FROM actor JOIN casting ON id=actorid WHERE casting.movieid= (SELECT id FROM movie WHERE title = 'Alien')
+SELECT title FROM movie JOIN casting ON movieid = id WHERE actorid = (SELECT id FROM actor WHERE name = 'Harrison Ford' )
+SELECT title FROM movie JOIN casting ON movieid = id WHERE actorid = (SELECT id FROM actor WHERE name = 'Harrison Ford' ) AND casting.ord > 1
+SELECT movie.title, actor.name  FROM actor JOIN casting ON casting.actorid = actor.id JOIN movie ON movie.id=casting.movieid WHERE movie.yr=1962 AND casting.ord=1
+SELECT yr,COUNT(title) FROM  movie JOIN casting ON movie.id=movieid  JOIN actor   ON actorid=actor.id WHERE name='Rock Hudson' GROUP BY yr HAVING COUNT(title) > 2
+SELECT  movie.title, actor.name FROM movie JOIN casting  ON casting.movieid=movie.id JOIn actor ON actor.id = casting.actorid WHERE movieid IN (SELECT movieid FROM casting WHERE actorid = (SELECT id from actor where name ='Julie Andrews')) AND casting.ord = 1
 SELECT actor.name FROM actor JOIN casting ON actor.id = casting.actorid WHERE casting.ord = 1 GROUP BY actor.name HAVING COUNT(ord) > 14
 SELECT title, COUNT(casting.movieid) AS cast FROM movie JOIN casting ON movie.id = casting.movieid WHERE movie.yr = 1978 GROUP BY movie.title ORDER BY cast DESC, movie.title
 SELECT actor.name FROM actor JOIN casting ON actor.id = casting.actorid WHERE casting.movieid in (SELECT casting.movieid FROM casting JOIN actor ON actor.id = casting.actorid WHERE name = 'Art Garfunkel') AND actor.name <> 'Art Garfunkel'
