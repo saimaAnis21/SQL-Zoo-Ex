@@ -80,4 +80,6 @@ SELECT teamname, COUNT(teamid) FROM eteam JOIN goal ON id=teamid GROUP BY teamna
 SELECT stadium, COUNT(goal.matchid) FROM game JOIN goal ON id=matchid GROUP BY stadium
 SELECT matchid,  mdate, COUNT(matchid) FROM game JOIN goal ON matchid = id WHERE (team1 = 'POL' OR team2 = 'POL') GROUP BY matchid, mdate
 SELECT matchid, mdate, COUNT(teamid) FROM goal JOIN game ON matchid=id WHERE teamid= 'GER' GROUP BY matchid, mdate
-13-
+SELECT actor.name FROM actor JOIN casting ON actor.id = casting.actorid WHERE casting.ord = 1 GROUP BY actor.name HAVING COUNT(ord) > 14
+SELECT title, COUNT(casting.movieid) AS cast FROM movie JOIN casting ON movie.id = casting.movieid WHERE movie.yr = 1978 GROUP BY movie.title ORDER BY cast DESC, movie.title
+SELECT actor.name FROM actor JOIN casting ON actor.id = casting.actorid WHERE casting.movieid in (SELECT casting.movieid FROM casting JOIN actor ON actor.id = casting.actorid WHERE name = 'Art Garfunkel') AND actor.name <> 'Art Garfunkel'
