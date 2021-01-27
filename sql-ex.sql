@@ -1,7 +1,7 @@
 -- 0 SELECT basics
-SELECT population FROM world WHERE name = 'Germany'
-SELECT name, population FROM world WHERE name IN ('Sweden', 'Norway','Denmark');
-SELECT name, area FROM world  WHERE area BETWEEN 200000 AND 250000
+SELECT world.population FROM world WHERE name = 'Germany'
+SELECT world.name, population FROM world WHERE name IN ('Sweden', 'Norway','Denmark');
+SELECT world.name, area FROM world  WHERE area BETWEEN 200000 AND 250000
 -- 1 SELECT name
 SELECT name FROM world WHERE name LIKE 'Y%'
 SELECT name FROM world WHERE name LIKE '%y'
@@ -19,19 +19,19 @@ SELECT capital, name FROM world WHERE capital LIKE concat(name,'%')
 SELECT capital, name FROM world WHERE capital LIKE concat(name,'%') AND capital <> name
 SELECT name, REPLACE(capital,name,'') FROM world WHERE capital LIKE concat(name,'%') AND capital <> name
 -- 2 SELECT from World
-SELECT name, continent, population FROM world
-SELECT name FROM world WHERE population > 200000000
-SELECT name, gdp/population FROM world WHERE population > 200000000
-SELECT name, population/1000000 FROM world WHERE continent = 'South America'
-SELECT name, population FROM world WHERE name IN ( 'France', 'Germany', 'Italy')
-SELECT name FROM world WHERE name LIKE '%United%'
-SELECT name, population, area FROM world WHERE area > 3000000 OR population > 250000000
-SELECT name, population, area FROM world WHERE (area > 3000000 OR population > 250000000) AND NOT (area > 3000000 AND population > 250000000)
-SELECT name, ROUND(population/1000000,2), ROUND(gdp/1000000000,2) FROM world WHERE continent = 'South America'
-SELECT name, ROUND(gdp/population,-3) FROM world WHERE gdp > 1000000000000
-SELECT name, capital FROM world WHERE LENGTH(name) = LENGTH(capital)
-SELECT name, capital FROM world WHERE LEFT(name,1) = LEFT(capital,1) AND name <> capital
-SELECT name FROM world WHERE name LIKE '%a%' AND name LIKE '%e%' AND name LIKE '%i%' AND name LIKE '%o%' AND name LIKE '%u%' AND name NOT LIKE '% %'
+SELECT world.name, continent, population FROM world
+SELECT world.name FROM world WHERE population > 200000000
+SELECT world.name, gdp/population FROM world WHERE population > 200000000
+SELECT world.name, population/1000000 FROM world WHERE continent = 'South America'
+SELECT world.name, population FROM world WHERE name IN ( 'France', 'Germany', 'Italy')
+SELECT world.name FROM world WHERE name LIKE '%United%'
+SELECT world.name, population, area FROM world WHERE area > 3000000 OR population > 250000000
+SELECT world.name, population, area FROM world WHERE (area > 3000000 OR population > 250000000) AND NOT (area > 3000000 AND population > 250000000)
+SELECT world.name, ROUND(population/1000000,2), ROUND(gdp/1000000000,2) FROM world WHERE continent = 'South America'
+SELECT world.name, ROUND(gdp/population,-3) FROM world WHERE gdp > 1000000000000
+SELECT world.name, capital FROM world WHERE LENGTH(name) = LENGTH(capital)
+SELECT world.name, capital FROM world WHERE LEFT(name,1) = LEFT(capital,1) AND name <> capital
+SELECT world.name FROM world WHERE name LIKE '%a%' AND name LIKE '%e%' AND name LIKE '%i%' AND name LIKE '%o%' AND name LIKE '%u%' AND name NOT LIKE '% %'
 -- 3 SELECT from Nobel
 SELECT yr, subject, winner FROM nobel WHERE yr = 1950
 SELECT winner FROM nobel WHERE yr = 1962 AND subject = 'Literature'
@@ -48,15 +48,15 @@ SELECT * FROM nobel WHERE winner = "EUGENE O\'NEILL"
 SELECT winner, yr, subject FROM nobel WHERE winner LIKE 'Sir%' ORDER BY yr DESC
 SELECT winner, subject FROM nobel WHERE yr=1984 ORDER BY subject IN ('Physics','Chemistry'),subject,winner
 -- 4 SELECT within SELECT
-SELECT name FROM world WHERE population > (SELECT population FROM world WHERE name='Russia')
-SELECT name FROM world WHERE (gdp/population) > (SELECT gdp/population FROM world WHERE name =  'United Kingdom') AND continent = 'Europe'
-SELECT name, continent FROM world WHERE continent IN (SELECT continent FROM world WHERE name IN ('Argentina','Australia')) ORDER BY name
-SELECT name, population FROM world WHERE population > (SELECT population FROM world WHERE name = 'Canada') AND population < (SELECT population FROM world WHERE name = 'Poland')
-SELECT name, Concat(ROUND(100*population/(SELECT population FROM world WHERE name = 'Germany')),'%') FROM world WHERE continent = 'Europe'
-SELECT name FROM world WHERE GDP > (SELECT MAX(GDP) FROM world WHERE continent = 'Europe')
+SELECT world.name FROM world WHERE population > (SELECT population FROM world WHERE name='Russia')
+SELECT world.name FROM world WHERE (gdp/population) > (SELECT gdp/population FROM world WHERE name =  'United Kingdom') AND continent = 'Europe'
+SELECT world.name, continent FROM world WHERE continent IN (SELECT continent FROM world WHERE name IN ('Argentina','Australia')) ORDER BY name
+SELECT world.name, population FROM world WHERE population > (SELECT population FROM world WHERE name = 'Canada') AND population < (SELECT population FROM world WHERE name = 'Poland')
+SELECT world.name, Concat(ROUND(100*population/(SELECT population FROM world WHERE name = 'Germany')),'%') FROM world WHERE continent = 'Europe'
+SELECT world.name FROM world WHERE GDP > (SELECT MAX(GDP) FROM world WHERE continent = 'Europe')
 SELECT continent, name , area FROM world WHERE area IN (SELECT MAX(area) FROM world GROUP BY continent)
 SELECT continent, MIN(name) FROM world GROUP BY continent
-SELECT name, continent, population FROM world WHERE continent IN (SELECT continent FROM world GROUP BY continent HAVING MAX(population) <=25000000)
+SELECT world.name, continent, population FROM world WHERE continent IN (SELECT continent FROM world GROUP BY continent HAVING MAX(population) <=25000000)
 10-
 -- 5 SUM and COUNT
 SELECT SUM(population) FROM world
@@ -97,3 +97,16 @@ SELECT  movie.title, actor.name FROM movie JOIN casting  ON casting.movieid=movi
 SELECT actor.name FROM actor JOIN casting ON actor.id = casting.actorid WHERE casting.ord = 1 GROUP BY actor.name HAVING COUNT(ord) > 14
 SELECT title, COUNT(casting.movieid) AS cast FROM movie JOIN casting ON movie.id = casting.movieid WHERE movie.yr = 1978 GROUP BY movie.title ORDER BY cast DESC, movie.title
 SELECT actor.name FROM actor JOIN casting ON actor.id = casting.actorid WHERE casting.movieid in (SELECT casting.movieid FROM casting JOIN actor ON actor.id = casting.actorid WHERE name = 'Art Garfunkel') AND actor.name <> 'Art Garfunkel'
+-- 8 Using Null
+SELECT teacher.name FROM teacher where dept IS NULL
+SELECT teacher.name, dept.name FROM teacher INNER JOIN dept ON (teacher.dept=dept.id)
+SELECT teacher.name, dept.name FROM teacher LEFT OUTER JOIN dept ON (teacher.dept=dept.id)
+SELECT teacher.name, dept.name FROM teacher RIGHT OUTER JOIN dept ON (teacher.dept=dept.id)
+SELECT teacher.name, COALESCE(mobile,'07986 444 2266') AS mob FROM teacher
+SELECT teacher.name, COALESCE(dept.name,'None') FROM teacher LEFT OUTER JOIN dept ON (teacher.dept=dept.id)
+SELECT COUNT(name), COUNT(mobile) FROM teacher
+SELECT dept.name, COUNT(teacher.name) from dept LEFT OUTER JOIN teacher ON teacher.dept = dept.id GROUP BY dept.name
+SELECT name, CASE WHEN dept IN (1,2) THEN 'Sci' ELSE 'Art' END  FROM teacher
+SELECT name, CASE WHEN dept IN (1,2) THEN 'Sci' WHEN dept = 3 THEN 'Art' ELSE 'None' END FROM teacher
+-- 8+ Numeric Examples
+
