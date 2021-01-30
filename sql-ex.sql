@@ -144,7 +144,8 @@ SELECT constituency,party FROM (SELECT constituency,party, RANK() OVER (PARTITIO
 5-SELECT tw.name, DATE_FORMAT(tw.whn,'%Y-%m-%d'), tw.confirmed - lw.confirmed
   FROM covid tw LEFT JOIN covid lw ON DATE_ADD(lw.whn, INTERVAL 1 WEEK) = tw.whn  AND tw.name=lw.name
   WHERE tw.name = 'Italy' AND WEEKDAY(tw.whn) = 0 ORDER BY tw.whn
-6-
+6-SELECT name, confirmed, RANK() OVER (ORDER BY confirmed DESC) rc, deaths, RANK() OVER (ORDER BY deaths DESC) rc
+  FROM covid WHERE whn = '2020-04-20' ORDER BY confirmed DESC
 7-
 8-
 -- 9 Self join
