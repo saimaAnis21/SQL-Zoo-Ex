@@ -135,11 +135,15 @@ SELECT constituency,party, votes,RANK() OVER (PARTITION BY constituency ORDER BY
 SELECT constituency,party FROM (SELECT constituency,party, RANK() OVER (PARTITION BY constituency ORDER BY votes DESC) as posn from ge WHERE constituency BETWEEN 'S14000021' AND 'S14000026' AND yr  = 2017 ) AS tbl WHERE posn = 1
 6-SELECT party, COUNT(party) FROM (SELECT constituency,party, RANK() OVER (PARTITION BY constituency ORDER BY votes DESC) as posn from ge WHERE constituency LIKE 'S%' AND yr  = 2017 ) AS tbl WHERE posn = 1 GROUP BY party
 -- 9+ COVID 19
-SELECT name, DAY(whn),confirmed, deaths, recovered FROM covidWHERE name = 'Spain'AND MONTH(whn) = 3 ORDER BY whn
-SELECT  name, DAY(whn), confirmed - (LAG(confirmed, 1) OVER (PARTITION BY name ORDER BY whn)) AS new FROM covid WHERE name = 'Italy' AND MONTH(whn) = 3 ORDER BY whn
-3-
-4-
-5-
+1-SELECT name, DAY(whn),confirmed, deaths, recovered FROM covidWHERE name = 'Spain'AND MONTH(whn) = 3 ORDER BY whn
+2-SELECT  name, DAY(whn), confirmed - (LAG(confirmed, 1) OVER (PARTITION BY name ORDER BY whn)) AS new FROM covid WHERE name = 'Italy' AND MONTH(whn) = 3 ORDER BY whn
+3-SELECT name, DAY(whn), confirmed - (LAG(confirmed, 1) OVER (PARTITION BY name ORDER BY whn)) AS new
+  FROM covid  WHERE name = 'Italy' AND MONTH(whn) = 3 ORDER BY whn
+4-SELECT name, DATE_FORMAT(whn,'%Y-%m-%d'), confirmed - (LAG(confirmed, 1) OVER (PARTITION BY name ORDER BY whn)) AS 'new this week'
+  FROM covid WHERE name = 'Italy' AND WEEKDAY(whn) = 0 ORDER BY whn
+5-SELECT tw.name, DATE_FORMAT(tw.whn,'%Y-%m-%d'), tw.confirmed - lw.confirmed
+  FROM covid tw LEFT JOIN covid lw ON DATE_ADD(lw.whn, INTERVAL 1 WEEK) = tw.whn  AND tw.name=lw.name
+  WHERE tw.name = 'Italy' AND WEEKDAY(tw.whn) = 0 ORDER BY tw.whn
 6-
 7-
 8-
