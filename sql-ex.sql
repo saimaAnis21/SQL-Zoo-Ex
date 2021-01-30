@@ -57,7 +57,7 @@ SELECT world.name FROM world WHERE GDP > (SELECT MAX(GDP) FROM world WHERE conti
 SELECT continent, name , area FROM world WHERE area IN (SELECT MAX(area) FROM world GROUP BY continent)
 SELECT continent, MIN(name) FROM world GROUP BY continent
 SELECT world.name, continent, population FROM world WHERE continent IN (SELECT continent FROM world GROUP BY continent HAVING MAX(population) <=25000000)
-10-
+SELECT name, continent FROM world x WHERE population > ALL (SELECT 3*population FROM world y WHERE x.continent = y.continent AND x.name <> y.name)
 -- 5 SUM and COUNT
 SELECT SUM(population) FROM world
 SELECT DISTINCT continent FROM world
@@ -80,7 +80,13 @@ SELECT teamname, COUNT(teamid) FROM eteam JOIN goal ON id=teamid GROUP BY teamna
 SELECT stadium, COUNT(goal.matchid) FROM game JOIN goal ON id=matchid GROUP BY stadium
 SELECT matchid,  mdate, COUNT(matchid) FROM game JOIN goal ON matchid = id WHERE (team1 = 'POL' OR team2 = 'POL') GROUP BY matchid, mdate
 SELECT matchid, mdate, COUNT(teamid) FROM goal JOIN game ON matchid=id WHERE teamid= 'GER' GROUP BY matchid, mdate
-13- 
+13- SELECT mdate,
+  team1,
+  SUM(CASE WHEN teamid=team1 THEN 1 ELSE 0 END) score1, team2,
+  SUM(CASE WHEN teamid=team2 THEN 1 ELSE 0 END) score2
+  FROM game JOIN goal ON matchid = id
+GROUP BY mdate, team1, team2
+ORDER BY mdate,matchid, team1, team2
 -- 7 More JOIN operations
 SELECT id, title FROM movie WHERE yr=1962
 SELECT yr FROM movie WHERE title =  'Citizen Kane'
@@ -109,4 +115,42 @@ SELECT dept.name, COUNT(teacher.name) from dept LEFT OUTER JOIN teacher ON teach
 SELECT name, CASE WHEN dept IN (1,2) THEN 'Sci' ELSE 'Art' END  FROM teacher
 SELECT name, CASE WHEN dept IN (1,2) THEN 'Sci' WHEN dept = 3 THEN 'Art' ELSE 'None' END FROM teacher
 -- 8+ Numeric Examples
+SELECT A_STRONGLY_AGREE  FROM nss WHERE question='Q01' AND institution='Edinburgh Napier University'  AND subject='(8) Computer Science'
+SELECT institution, subject FROM nss WHERE question='Q15' AND score > 99
+SELECT institution,score  FROM nss WHERE question='Q15' AND subject='(8) Computer Science' AND score < 50
+SELECT subject, SUM(response) FROM nss WHERE question='Q22' AND subject IN ('(8) Computer Science', '(H) Creative Arts and Design') GROUP BY subject
+SELECT subject, SUM(response*A_STRONGLY_AGREE/100) FROM nss WHERE question='Q22' AND subject IN ('(8) Computer Science', '(H) Creative Arts and Design') GROUP BY subject
+SELECT subject, ROUND((SUM(response*A_STRONGLY_AGREE/100)/SUM(response))*100) FROM nss WHERE question='Q22' AND subject IN ('(8) Computer Science', '(H) Creative Arts and Design') GROUP BY subject
+SELECT institution,ROUND((SUM(response*score/100)/SUM(response))*100) FROM nss WHERE question='Q22' AND (institution LIKE '%Manchester%') GROUP BY institution
+8-SELECT institution,SUM(sample) AS comp
+  FROM nss
+ WHERE question='Q01'
+   AND (institution LIKE '%Manchester%') AND (subject = '(8) Computer Science' )
+GROUP BY institution
+-- 9- Window function
+SELECT lastName, party, votes  FROM ge WHERE constituency = 'S14000024' AND yr = 2017 ORDER BY votes DESC
+SELECT party,votes, RANK() OVER (ORDER BY votes DESC) as posn FROM ge WHERE constituency = 'S14000024' AND yr = 2017 ORDER BY party
+SELECT yr,party, votes, RANK() OVER (PARTITION BY yr ORDER BY votes DESC) as posn FROM ge WHERE constituency = 'S14000021' ORDER BY party,yr 
+SELECT constituency,party, votes,RANK() OVER (PARTITION BY constituency ORDER BY votes DESC) as posn  FROM ge WHERE constituency BETWEEN 'S14000021' AND 'S14000026' AND yr  = 2017 ORDER BY posn, constituency
+SELECT constituency,party FROM (SELECT constituency,party, RANK() OVER (PARTITION BY constituency ORDER BY votes DESC) as posn from ge WHERE constituency BETWEEN 'S14000021' AND 'S14000026' AND yr  = 2017 ORDER BY constituency,votes DESC) AS tbl WHERE posn = 1
+6-
+-- 9+ COVID 19
+SELECT name, DAY(whn),confirmed, deaths, recovered FROM covidWHERE name = 'Spain'AND MONTH(whn) = 3 ORDER BY whn
+SELECT  name, DAY(whn), confirmed - (LAG(confirmed, 1) OVER (PARTITION BY name ORDER BY whn)) AS new FROM covid WHERE name = 'Italy' AND MONTH(whn) = 3 ORDER BY whn
+3-
+4-
+5-
+6-
+7-
+8-
+-- 9 Self join
+SELECT COUNT(id) FROM stops
+SELECT id FROM stops WHERE name = 'Craiglockhart'
+SELECT id, name FROM stops JOIN route ON stops.id = route.stop WHERE route.company = 'LRT' AND route.num = '4'
+SELECT company, num, COUNT(*)FROM route WHERE stop=149 OR stop=53 GROUP BY company, num HAVING COUNT(*) = 2
+SELECT a.company, a.num, a.stop, b.stop FROM route a JOIN route b ON (a.company=b.company AND a.num=b.num) WHERE a.stop=53 AND b.stop = 149
+SELECT a.company, a.num, stopa.name, stopb.name FROM route a JOIN route b ON (a.company=b.company AND a.num=b.num) JOIN stops stopa ON (a.stop=stopa.id) JOIN stops stopb ON (b.stop=stopb.id) WHERE stopa.name='Craiglockhart' AND stopb.name='London Road'
+SELECT DISTINCT a.company, a.num FROM route a JOIN route b ON (a.company=b.company AND a.num=b.num) JOIN stops stopa ON (a.stop=stopa.id) JOIN stops stopb ON (b.stop=stopb.id) WHERE stopa.name='Haymarket' AND stopb.name='Leith'
+SELECT DISTINCT a.company, a.num FROM route a JOIN route b ON (a.company=b.company AND a.num=b.num) JOIN stops stopa ON (a.stop=stopa.id) JOIN stops stopb ON (b.stop=stopb.id) WHERE stopa.name='Craiglockhart' AND stopb.name='Tollcross'
+10-
 
